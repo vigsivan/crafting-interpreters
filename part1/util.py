@@ -1,6 +1,7 @@
 from typing import Any
 from enum import Enum, auto
 
+
 class TokenType(Enum):
     # Single character tokens
     LEFT_PAREN = auto()
@@ -30,7 +31,7 @@ class TokenType(Enum):
     STRING = auto()
     NUMBER = auto()
 
-    # Keyworkds
+    # Keywords
     AND = auto()
     CLASS = auto()
     ELSE = auto()

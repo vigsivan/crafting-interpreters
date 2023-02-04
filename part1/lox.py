@@ -1,7 +1,7 @@
 import sys
 from scanner import Scanner
 
-class Lox :
+class Lox:
     had_error: bool = False
 
     @classmethod
@@ -17,8 +17,8 @@ class Lox :
 
     @classmethod
     def run_file(cls, arg: str):
-        with open(arg, 'rb') as f:
-            bytes  = f.read()
+        with open(arg, "rb") as f:
+            bytes = f.read()
 
         cls.run(bytes.decode("utf-8"))
         if cls.had_error:
@@ -31,7 +31,6 @@ class Lox :
             if len(line.strip()) == 0:
                 break
             cls.run(line)
-            had_error = False;
 
     @classmethod
     def run(cls, source: str):
