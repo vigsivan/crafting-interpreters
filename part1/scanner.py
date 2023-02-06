@@ -4,17 +4,18 @@ Scanner implementation in Python
 
 # TODO: test the implementation
 
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 from util import Token, TokenType
 
 
 class Scanner:
-    def __init__(self, source: str):
+    def __init__(self, source: str, error_handler: Callable[[ int, str ],None]):
         self.source = source
         self.tokens = []
         self.start = 0
         self.current = 0
         self.line = 1
+        self.error = error_handler
 
         self.reserved_keywords_map = {
             # Keywords,
@@ -37,10 +38,9 @@ class Scanner:
 
     def scan_tokens(self) -> List[Token]:
         while not self.is_at_end():
-            start = None  # current
             self.scan_token()
-            if start is None:
-                break
+            # if start is None:
+            #     break
 
         self.tokens.append(Token(TokenType.EOF, "", None, self.line + 1))
         return self.tokens
@@ -100,8 +100,8 @@ class Scanner:
             elif self.is_alpha(c):
                 self.identifier()
             else:
-                # FIXME make this more like the Java implementation
-                raise ValueError(f"Character {c} on line {self.line}")
+                message = f"Issue parsing character {c}"
+                self.error(self.line, message)
 
     def is_alpha(self, c) -> bool:
         return (c >= 'a' and c <= 'z' or
@@ -126,8 +126,7 @@ class Scanner:
             self.advance()
 
         if self.is_at_end():
-            # FIXME: make this more like the Java implementation
-            raise ValueError("Unterminated string")
+            self.error(self.line, "Unterminated string")
 
         # move past the closing "
         self.advance()
@@ -135,7 +134,7 @@ class Scanner:
         value = self.source[self.start + 1 : self.current - 1]
         self.add_token(TokenType.STRING, value)
 
-    def is_digit(self, c) -> bool:
+    def is_digit(self, c: str) -> bool:
         return c >= '0' and c <= '9'
 
     def number(self):
@@ -151,11 +150,13 @@ class Scanner:
         self.add_token(TokenType.NUMBER, float(self.source[self.start: self.current]))
 
     def advance(self) -> str:
-        ...
+        self.current += 1
+        return self.source[self.current-1]
 
     def add_token(self, ttype: TokenType, literal: Optional[Any] = None):
         text = self.source[self.start : self.current]
         self.tokens.append(Token(ttype, text, literal, self.line))
+        self.start = self.current
 
     def match(self, expected: str):
         if self.is_at_end():

@@ -34,7 +34,7 @@ class Lox:
 
     @classmethod
     def run(cls, source: str):
-        scanner = Scanner(source)
+        scanner = Scanner(source, cls.error)
         tokens = scanner.scan_tokens()
 
         # TODO
