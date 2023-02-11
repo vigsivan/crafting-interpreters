@@ -89,6 +89,7 @@ class Scanner:
         elif c == "<":
             self.add_token(TokenType.LESS_EQUAL if self.match("=") else TokenType.LESS)
         elif c in [" ", "\r", "\t"]:
+            self.start = self.current
             return
         elif c == "\n":
             self.line += 1
