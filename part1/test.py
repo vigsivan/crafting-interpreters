@@ -1,7 +1,8 @@
 import logging
 import pytest
-from util import Token, TokenType
+from lox import Lox
 from scanner import Scanner
+from util import Token, TokenType
 
 @pytest.fixture
 def error_handler():
@@ -15,7 +16,7 @@ def expect_error_handler():
         raise ValueError()
     return expect_error
 
-def test_unparseable_chracter(expect_error_handler):
+def test_unscanable_chracter(expect_error_handler):
     program = """print ~3"""
     scanner = Scanner(program, expect_error_handler)
     try:
@@ -95,5 +96,17 @@ def test_scan_simple_program(error_handler):
     for token, exp_token_type in zip(tokens, EXPECTED_TOKENS):
         assert token.type == exp_token_type
 
+def test_parse_simple_program():
+    program = '''
+    print "Hello World!"
+    var x = 3
+    var y = 4
+    print x + y
+    '''
+
+    Lox().run(program)
+
+
 if __name__ == "__main__":
-    test_scan_simple_program(lambda x: logging.info(x[1]))
+    # test_scan_simple_program(lambda x: logging.info(x[1]))
+    test_parse_simple_program()
