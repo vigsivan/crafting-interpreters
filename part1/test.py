@@ -20,7 +20,7 @@ def test_unparseable_chracter(expect_error_handler):
     scanner = Scanner(program, expect_error_handler)
     try:
         scanner.scan_tokens()
-        assert False
+        assert False, "Lox scanner should not be able to parse '~'"
     except ValueError:
         pass 
     assert True
@@ -30,7 +30,7 @@ def test_unterminated_string_throws_error(expect_error_handler):
     scanner = Scanner(program, expect_error_handler)
     try:
         scanner.scan_tokens()
-        assert False
+        assert False, "Scanner should've failed due to unterminated string"
     except ValueError:
         pass 
     assert True

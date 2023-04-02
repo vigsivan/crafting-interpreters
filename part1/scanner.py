@@ -9,7 +9,7 @@ from util import Token, TokenType
 
 
 class Scanner:
-    def __init__(self, source: str, error_handler: Callable[[ int, str ],None]):
+    def __init__(self, source: str, error_handler: Callable[[int, str], None]):
         self.source = source
         self.tokens = []
         self.start = 0
@@ -19,21 +19,21 @@ class Scanner:
 
         self.reserved_keywords_map = {
             # Keywords,
-            "and": TokenType.AND ,
-            "class": TokenType.CLASS ,
-            "else": TokenType.ELSE ,
-            "false": TokenType.FALSE ,
-            "fun": TokenType.FUN ,
-            "if": TokenType.IF ,
-            "nil": TokenType.NIL ,
-            "or": TokenType.OR ,
-            "print": TokenType.PRINT ,
-            "return": TokenType.RETURN ,
-            "super": TokenType.SUPER ,
-            "this": TokenType.THIS ,
-            "true": TokenType.TRUE ,
-            "var": TokenType.VAR ,
-            "while": TokenType.WHILE ,
+            "and":    TokenType.AND,
+            "class":  TokenType.CLASS,
+            "else":   TokenType.ELSE,
+            "false":  TokenType.FALSE,
+            "fun":    TokenType.FUN,
+            "if":     TokenType.IF,
+            "nil":    TokenType.NIL,
+            "or":     TokenType.OR,
+            "print":  TokenType.PRINT,
+            "return": TokenType.RETURN,
+            "super":  TokenType.SUPER,
+            "this":   TokenType.THIS,
+            "true":   TokenType.TRUE,
+            "var":    TokenType.VAR,
+            "while":  TokenType.WHILE,
         }
 
     def scan_tokens(self) -> List[Token]:
@@ -105,16 +105,15 @@ class Scanner:
                 self.error(self.line, message)
 
     def is_alpha(self, c) -> bool:
-        return (c >= 'a' and c <= 'z' or
-                c >= 'A' and c <= 'Z' or
-                c == '_')
+        return c >= "a" and c <= "z" or c >= "A" and c <= "Z" or c == "_"
 
     def is_alphanumeric(self, c):
-        return (self.is_alpha(c) or self.is_digit(c))
+        return self.is_alpha(c) or self.is_digit(c)
 
     def identifier(self):
-        while self.is_alphanumeric(self.peek()): self.advance()
-        text = self.source[self.start:self.current]
+        while self.is_alphanumeric(self.peek()):
+            self.advance()
+        text = self.source[self.start : self.current]
         if text in self.reserved_keywords_map:
             self.add_token(self.reserved_keywords_map[text])
         else:
@@ -136,23 +135,23 @@ class Scanner:
         self.add_token(TokenType.STRING, value)
 
     def is_digit(self, c: str) -> bool:
-        return c >= '0' and c <= '9'
+        return c >= "0" and c <= "9"
 
     def number(self):
         while self.is_digit(self.peek()):
             self.advance()
-        
-        if self.peek() == '.' and self.is_digit(self.peek_next()):
+
+        if self.peek() == "." and self.is_digit(self.peek_next()):
             self.advance()
 
         while self.is_digit(self.peek()):
             self.advance()
 
-        self.add_token(TokenType.NUMBER, float(self.source[self.start: self.current]))
+        self.add_token(TokenType.NUMBER, float(self.source[self.start : self.current]))
 
     def advance(self) -> str:
         self.current += 1
-        return self.source[self.current-1]
+        return self.source[self.current - 1]
 
     def add_token(self, ttype: TokenType, literal: Optional[Any] = None):
         text = self.source[self.start : self.current]
@@ -174,7 +173,6 @@ class Scanner:
         return self.source[self.current]
 
     def peek_next(self):
-        if self.current + 1 >= len(self.source): return '\0'
-        return self.source[self.current+1]
-
-
+        if self.current + 1 >= len(self.source):
+            return "\0"
+        return self.source[self.current + 1]
