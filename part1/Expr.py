@@ -35,8 +35,16 @@ class Unary(Expr):
         return visitor.visit_unary(self)
 
 class Variable(Expr):
-	def __init__(self, name: Token):
-		self.name = name
-	
-	def accept(self, visitor):
-		return visitor.visit_variable(self)
+    def __init__(self, name: Token):
+        self.name = name
+    
+    def accept(self, visitor):
+        return visitor.visit_variable(self)
+
+class Assign(Expr):
+    def __init__(self, name: Token, value: Expr):
+        self.name = name
+        self.value = value
+    
+    def accept(self, visitor):
+        return visitor.visit_assign(self)

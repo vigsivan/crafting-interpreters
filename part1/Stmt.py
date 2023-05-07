@@ -1,7 +1,7 @@
 from abc import ABC
 from Expr import Expr
 from util import Token
-from typing import Optional
+from typing import List, Optional
 
 class Stmt(ABC):
 	def accept(self, visitor):
@@ -26,3 +26,9 @@ class Var(Stmt):
 		self. initializer =  initializer
 	def accept(self, visitor):
 		return visitor.visit_var(self)
+
+class Block(Stmt):
+	def __init__(self, statements: List[Stmt] ): 
+		self.statements = statements
+	def accept(self, visitor):
+		return visitor.visit_block(self)

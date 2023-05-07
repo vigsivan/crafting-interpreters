@@ -112,5 +112,31 @@ def test_execute_simple_program_with_vars():
     '''
     Lox().run(basic_program)
 
+def test_execute_program_with_scopes():
+    program = \
+    """
+    var a = "global a";
+    var b = "global b";
+    var c = "global c";
+    {
+      var a = "outer a";
+      var b = "outer b";
+      {
+        var a = "inner a";
+        print a;
+        print b;
+        print c;
+      }
+      print a;
+      print b;
+      print c;
+    }
+    print a;
+    print b;
+    print c;
+    """
+    Lox().run(program)
+
 if __name__ == "__main__":
-    test_execute_simple_program_with_vars()
+    # test_execute_simple_program_with_vars()
+    test_execute_program_with_scopes()

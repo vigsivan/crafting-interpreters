@@ -1,6 +1,6 @@
 from typing import Any, List
-from Stmt import Print, Expression, Stmt, Var
-from Expr import Binary, Expr, Grouping, Literal, Unary, Variable
+from Stmt import Block, Print, Expression, Stmt, Var
+from Expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
 from runtime_error import RuntimeError
 from environment import Environment
@@ -31,6 +31,9 @@ class Interpreter:
     def visit_expression(self, stmt: Expression):
         self.evaluate(stmt.expression)
 
+    def visit_block(self, stmt: Block):
+        self.execute_block(stmt.statements, Environment(self.environment))
+
     def visit_print(self, stmt: Print):
         value = stmt.expression.accept(self)
         print(self.stringify(value))
@@ -53,6 +56,11 @@ class Interpreter:
 
         # should be unreachable
         return None
+
+    def visit_assign(self, expr: Assign):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
 
     def visit_binary(self, expr: Binary):
         left = self.evaluate(expr.left)
@@ -115,3 +123,12 @@ class Interpreter:
 
     def evaluate(self, expr: Expr):
         return expr.accept(self)
+
+    def execute_block(self, statements: List[Stmt], environment: Environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.execute(statement)
+        finally:
+            self.environment = previous

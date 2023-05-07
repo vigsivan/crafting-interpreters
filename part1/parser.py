@@ -1,6 +1,6 @@
 from typing import List, Final
-from Expr import Binary, Grouping, Literal, Unary, Variable
-from Stmt import Print, Expression, Var
+from Expr import Assign, Binary, Grouping, Literal, Unary, Variable
+from Stmt import Block, Print, Expression, Var
 from util import Token, TokenType
 
 class ParserException(Exception):
@@ -14,9 +14,6 @@ class Parser:
         self.tokens: Final = tokens
         self.current: int = 0
 
-    def expression(self):
-        return self.equality()
-
     def parse(self):
         statements = []
         while not self.is_at_end():
@@ -28,6 +25,23 @@ class Parser:
                 statements.append(declaration)
         return statements
         # return self.expression()
+
+    def expression(self):
+        return self.assignment()
+
+    def assignment(self):
+        expr = self.equality()
+
+        if self.match(TokenType.EQUAL):
+            equals = self.previous()
+            value = self.assignment()
+
+            if isinstance(expr, Variable):
+                name = expr.name
+                return Assign(name, value)
+
+            self.error(equals, "Invalid assignment target.")
+        return expr
 
     def declaration(self):
         try:
@@ -50,11 +64,20 @@ class Parser:
         return Var(name, initializer)
 
     def statement(self):
+        if self.match(TokenType.LEFT_BRACE):
+            return Block(self.block())
         if self.match(TokenType.EOF):
             return
         if self.match(TokenType.PRINT):
             return self.print_statement()
         return self.expression_statement()
+
+    def block(self):
+        statements = []
+        while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
+            statements.append(self.declaration())
+        self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
 
     def print_statement(self):
         value = self.expression()
@@ -68,7 +91,7 @@ class Parser:
 
     def equality(self):
         expr = self.comparison()
-        while self.match(TokenType.BANG_EQUAL, TokenType.BANG_EQUAL):
+        while self.match(TokenType.BANG_EQUAL, TokenType.EQUAL_EQUAL):
             operator = self.previous()
             right = self.comparison()
             expr = Binary(expr, operator, right)
