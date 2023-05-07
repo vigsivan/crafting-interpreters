@@ -1,6 +1,6 @@
 from typing import Any, List
-from Stmt import Block, Print, Expression, Stmt, Var
-from Expr import Assign, Binary, Expr, Grouping, Literal, Unary, Variable
+from Stmt import Block, If, Print, Expression, Stmt, Var
+from Expr import Assign, Binary, Expr, Logical, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
 from runtime_error import RuntimeError
 from environment import Environment
@@ -24,6 +24,12 @@ class Interpreter:
         if statement.initializer is not None:
             value = self.evaluate(statement.initializer)
         self.environment.define(statement.name.lexeme, value)
+
+    def visit_if(self, stmt: If):
+        if self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch:
+            self.execute(stmt.else_branch)
 
     def visit_variable(self, expression: Variable):
         return self.environment.get(expression.name)
@@ -56,6 +62,15 @@ class Interpreter:
 
         # should be unreachable
         return None
+
+    def visit_logical(self, expr: Logical):
+        left = self.evaluate(expr.left)
+        if expr.operator.type == TokenType.OR:
+            if self.is_truthy(left): return left
+        else:
+            if not self.is_truthy(left): return left
+        return self.evaluate(expr.right)
+
 
     def visit_assign(self, expr: Assign):
         value = self.evaluate(expr.value)

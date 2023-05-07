@@ -137,6 +137,16 @@ def test_execute_program_with_scopes():
     """
     Lox().run(program)
 
+def test_conditionals_shortcircuiting():
+    program = \
+    """
+    print "hi" or 2;
+    print nil or "yes";
+    """
+    Lox().run(program)
+
+
 if __name__ == "__main__":
     # test_execute_simple_program_with_vars()
-    test_execute_program_with_scopes()
+    test_conditionals_shortcircuiting()
+    # test_execute_program_with_scopes()

@@ -32,3 +32,13 @@ class Block(Stmt):
 		self.statements = statements
 	def accept(self, visitor):
 		return visitor.visit_block(self)
+
+class If(Stmt):
+	def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Optional[Stmt]):
+		self.condition = condition
+		self.then_branch = then_branch
+		self.else_branch = else_branch
+
+	def accept(self, visitor):
+		return visitor.visit_if(self)
+

@@ -1,6 +1,6 @@
 from typing import List, Final
-from Expr import Assign, Binary, Grouping, Literal, Unary, Variable
-from Stmt import Block, Print, Expression, Var
+from Expr import Assign, Binary, Grouping, Literal, Unary, Variable, Logical
+from Stmt import Block, If, Print, Expression, Var
 from util import Token, TokenType
 
 class ParserException(Exception):
@@ -30,7 +30,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self):
-        expr = self.equality()
+        expr = self.logical_or()
 
         if self.match(TokenType.EQUAL):
             equals = self.previous()
@@ -41,6 +41,22 @@ class Parser:
                 return Assign(name, value)
 
             self.error(equals, "Invalid assignment target.")
+        return expr
+
+    def logical_or(self):
+        expr = self.logical_and()
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.logical_and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def logical_and(self):
+        expr = self.equality()
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
         return expr
 
     def declaration(self):
@@ -64,6 +80,8 @@ class Parser:
         return Var(name, initializer)
 
     def statement(self):
+        if self.match(TokenType.IF):
+            return self.if_statement()
         if self.match(TokenType.LEFT_BRACE):
             return Block(self.block())
         if self.match(TokenType.EOF):
@@ -71,6 +89,18 @@ class Parser:
         if self.match(TokenType.PRINT):
             return self.print_statement()
         return self.expression_statement()
+
+    def if_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match(TokenType.ELSE):
+            else_branch = self.statement()
+
+        return If(condition, then_branch, else_branch)
 
     def block(self):
         statements = []

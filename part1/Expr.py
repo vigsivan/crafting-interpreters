@@ -48,3 +48,12 @@ class Assign(Expr):
     
     def accept(self, visitor):
         return visitor.visit_assign(self)
+
+class Logical(Expr):
+    def __init__(self, left: Expr, operator: Token, right: Expr):
+        self. left: Expr=  left
+        self. operator: Token=  operator
+        self. right: Expr=  right
+    def accept(self, visitor):
+        return visitor.visit_logical(self)
+
