@@ -1,9 +1,13 @@
 from typing import List, Final
-from Expr import Binary, Grouping, Literal, Unary
+from Expr import Binary, Grouping, Literal, Unary, Variable
+from Stmt import Print, Expression, Var
 from util import Token, TokenType
 
 class ParserException(Exception):
     """Parser Exception"""
+    def __init__(self, token: Token, message: str):
+        self.token: Final[Token] = token
+        self.message = message
 
 class Parser:
     def __init__(self, tokens: List[Token]):
@@ -14,10 +18,53 @@ class Parser:
         return self.equality()
 
     def parse(self):
+        statements = []
+        while not self.is_at_end():
+            # statement = self.statement()
+            # if statement is not None:
+            #     statements.append(statement)
+            declaration = self.declaration()
+            if declaration is not None:
+                statements.append(declaration)
+        return statements
+        # return self.expression()
+
+    def declaration(self):
         try:
-            return self.expression()
-        except ParserException:
+            if self.match(TokenType.VAR):
+                return self.var_declaration()
+            else:
+                return self.statement()
+        except ParserException as e:
+            self.synchronize()
             return None
+
+    def var_declaration(self):
+        name = self.consume(TokenType.IDENTIFIER, "Expect variable name")
+
+        initializer = None
+        if self.match(TokenType.EQUAL):
+            initializer = self.expression()
+
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Var(name, initializer)
+
+    def statement(self):
+        if self.match(TokenType.EOF):
+            return
+        if self.match(TokenType.PRINT):
+            return self.print_statement()
+        return self.expression_statement()
+
+    def print_statement(self):
+        value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Print(value)
+
+    def expression_statement(self):
+        expr = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        return Expression(expr)
 
     def equality(self):
         expr = self.comparison()
@@ -72,6 +119,8 @@ class Parser:
             return Literal(None)
         if self.match(TokenType.NUMBER, TokenType.STRING):
             return Literal(self.previous().literal)
+        if self.match(TokenType.IDENTIFIER):
+            return Variable(self.previous())
         if self.match(TokenType.LEFT_PAREN):
             expr = self.expression()
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
@@ -84,8 +133,8 @@ class Parser:
         raise self.error(self.peek(), msg)
 
     def error(self, token: Token, msg: str):
-        Lox.error(token, msg)
-        return ParserException(msg)
+        breakpoint()
+        return ParserException(token, msg)
 
     def synchronize(self):
         self.advance() 
@@ -115,7 +164,8 @@ class Parser:
         return self.peek().type == ttype
 
     def is_at_end(self) -> bool:
-        return False
+        return self.current >= len(self.tokens)
+        # return False
 
     def peek(self):
         return self.tokens[self.current]

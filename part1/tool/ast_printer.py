@@ -1,9 +1,16 @@
 from Expr import Binary, Expr, Grouping, Literal, Unary
+from Stmt import Print, Expression
 from util import Token, TokenType
 
 class AstPrinter:
     def print(self, expr: Expr):
         return expr.accept(self)
+
+    def visit_print(self, stmt: Print):
+        return f"(print {self.print(stmt.expression)})"
+
+    def visit_expression(self, stmt: Expression):
+        return self.print(stmt.expression)
 
     def visit_binary(self, expr: Binary):
         return self.parenthesize(expr.operator.lexeme, expr.left, expr.right)

@@ -2,25 +2,46 @@ import sys
 from pathlib import Path
 from typing import List
 
+# preamble = """
+# from abc import ABC
+# from typing import Any, Callable, Optional
+# from util import Token
+#
+# class Expr(ABC):
+# \tdef accept(self, visitor):
+# \t\treturn visitor(self)
+# """
+#
 preamble = """
 from abc import ABC
-from typing import Any, Callable, Optional
+from Expr import Expr
 from util import Token
 
-class Expr(ABC):
+class Stmt(ABC):
 \tdef accept(self, visitor):
 \t\treturn visitor(self)
 """
 
+
+
 def generate_ast(output_dir: Path):
+    # define_ast(
+    #     output_dir,
+    #     "Expr",
+    #     [
+    #         "Binary, left: Expr, operator: Token, right: Expr",
+    #         "Grouping, expression: Expr",
+    #         "Literal, value",
+    #         "Unary, operator: Token, right: Expr"
+    #     ]
+    # )
     define_ast(
         output_dir,
-        "Expr",
+        "Stmt",
         [
-            "Binary, left: Expr, operator: Token, right: Expr",
-            "Grouping, expression: Expr",
-            "Literal, value",
-            "Unary, operator: Token, right: Expr"
+            "Expression, expression: Expr",
+            "Print, expression: Expr",
+            "Var, name: Token, initializer: Expr"
         ]
     )
 
@@ -32,7 +53,7 @@ def define_ast(output_dir: Path, base_name: str, types: List[str]):
         class_name, args = comps[0], comps[1:]
         arg_assignments = "\n\t\t" + "\n\t\t".join(["self."+arg+"= "+ arg.split(":")[0] for arg in args])
         init_line = "\n\t" + f"def __init__(self, {','.join(args)}): {arg_assignments}"
-        file_obj.write("\n\n" + f"class {class_name}(Expr):{init_line}")
+        file_obj.write("\n\n" + f"class {class_name}(Stmt):{init_line}")
 
     def _define_visitor(file_obj, class_str):
         accept_line = "\n\tdef accept(self, visitor):" 

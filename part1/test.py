@@ -96,17 +96,21 @@ def test_scan_simple_program(error_handler):
     for token, exp_token_type in zip(tokens, EXPECTED_TOKENS):
         assert token.type == exp_token_type
 
-def test_parse_simple_program():
-    program = '''
-    print "Hello World!"
-    var x = 3
-    var y = 4
-    print x + y
+def test_execute_simple_program():
+    basic_program = '''
+    print "one";
+    print true;
+    print 2 + 1;
     '''
+    Lox().run(basic_program)
 
-    Lox().run(program)
-
+def test_execute_simple_program_with_vars():
+    basic_program = '''
+    var a = 1;
+    var b = 2;
+    print a + b;
+    '''
+    Lox().run(basic_program)
 
 if __name__ == "__main__":
-    # test_scan_simple_program(lambda x: logging.info(x[1]))
-    test_parse_simple_program()
+    test_execute_simple_program_with_vars()

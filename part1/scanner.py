@@ -50,9 +50,9 @@ class Scanner:
 
     def scan_token(self):
         c = self.advance()
-        if c == ")":
+        if c == "(":
             self.add_token(TokenType.LEFT_PAREN)
-        elif c == "(":
+        elif c == ")":
             self.add_token(TokenType.RIGHT_PAREN)
         elif c == "{":
             self.add_token(TokenType.LEFT_BRACE)
