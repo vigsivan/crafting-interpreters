@@ -21,6 +21,7 @@ class Environment:
     def assign(self, name: Token, value: Any):
         if name.lexeme in self.values:
             self.values[name.lexeme] = value
-        if self.enclosing:
+        elif self.enclosing:
             self.enclosing.assign(name, value)
-        raise RuntimeError(name, f"Undefined variable '{name.lexeme}'.")
+        else:
+            raise RuntimeError(name, f"Undefined variable '{name.lexeme}'.")

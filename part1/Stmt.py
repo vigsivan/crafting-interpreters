@@ -42,3 +42,21 @@ class If(Stmt):
 	def accept(self, visitor):
 		return visitor.visit_if(self)
 
+class While(Stmt):
+	def __init__(self, condition: Optional[Expr], loop_body: Stmt):
+		self.condition = condition
+		self.loop_body = loop_body
+
+	def accept(self, visitor):
+		return visitor.visit_while(self)
+
+class For(Stmt):
+	def __init__(self, initialization: Optional[Var], condition: Optional[Expr], update: Optional[Expr], loop_body: Stmt):
+		self.initialization = initialization
+		self.condition = condition
+		self.update = update
+		self.body = loop_body
+
+	def accept(self, visitor):
+		return visitor.visit_for(self)
+

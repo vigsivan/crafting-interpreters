@@ -48,11 +48,6 @@ class Lox:
             tokens = scanner.scan_tokens()
             parser = Parser(tokens)
             statements = parser.parse()
-
-            # for debugging (now OUTDATED)
-            # for statement in statements:
-            #     print(AstPrinter().print(statement))
-
             interpreter = Interpreter()
             interpreter.interpret(statements)
 

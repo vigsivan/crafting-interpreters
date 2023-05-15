@@ -34,6 +34,7 @@ class Scanner:
             "true":   TokenType.TRUE,
             "var":    TokenType.VAR,
             "while":  TokenType.WHILE,
+            "for":  TokenType.FOR,
         }
 
     def scan_tokens(self) -> List[Token]:

@@ -1,5 +1,5 @@
 from typing import Any, List
-from Stmt import Block, If, Print, Expression, Stmt, Var
+from Stmt import Block, For, If, Print, Expression, Stmt, Var, While
 from Expr import Assign, Binary, Expr, Logical, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
 from runtime_error import RuntimeError
@@ -24,6 +24,28 @@ class Interpreter:
         if statement.initializer is not None:
             value = self.evaluate(statement.initializer)
         self.environment.define(statement.name.lexeme, value)
+
+    def visit_for(self, stmt: For):
+        previous = self.environment
+        try:
+            self.environment = Environment(enclosing=previous)
+            if stmt.initialization is not None:
+                stmt.initialization.accept(self)
+            while stmt.condition is None or (stmt.condition and self.is_truthy(self.evaluate(stmt.condition))):
+                self.execute(stmt.body)
+                if stmt.update is not None:
+                    self.evaluate(stmt.update)
+        finally:
+            self.environment = previous
+
+    def visit_while(self, stmt: While):
+        enclosing = self.environment
+        try:
+            while stmt.condition is None or self.is_truthy(self.evaluate(stmt.condition)):
+                self.environment = Environment(enclosing=enclosing)
+                self.execute(stmt.loop_body)
+        finally:
+            self.environment = enclosing
 
     def visit_if(self, stmt: If):
         if self.is_truthy(self.evaluate(stmt.condition)):

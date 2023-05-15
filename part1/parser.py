@@ -1,11 +1,12 @@
 from typing import List, Final
 from Expr import Assign, Binary, Grouping, Literal, Unary, Variable, Logical
-from Stmt import Block, If, Print, Expression, Var
+from Stmt import Block, If, Print, Expression, Var, For, While
 from util import Token, TokenType
 
 class ParserException(Exception):
     """Parser Exception"""
     def __init__(self, token: Token, message: str):
+        breakpoint()
         self.token: Final[Token] = token
         self.message = message
 
@@ -17,14 +18,10 @@ class Parser:
     def parse(self):
         statements = []
         while not self.is_at_end():
-            # statement = self.statement()
-            # if statement is not None:
-            #     statements.append(statement)
             declaration = self.declaration()
             if declaration is not None:
                 statements.append(declaration)
         return statements
-        # return self.expression()
 
     def expression(self):
         return self.assignment()
@@ -40,7 +37,7 @@ class Parser:
                 name = expr.name
                 return Assign(name, value)
 
-            self.error(equals, "Invalid assignment target.")
+            raise ParserException(equals, "Invalid assignment target.")
         return expr
 
     def logical_or(self):
@@ -61,13 +58,17 @@ class Parser:
 
     def declaration(self):
         try:
-            if self.match(TokenType.VAR):
+            if self.match(TokenType.WHILE):
+                return self.while_statement()
+            elif self.match(TokenType.FOR):
+                return self.for_statement()
+            elif self.match(TokenType.VAR):
                 return self.var_declaration()
             else:
                 return self.statement()
         except ParserException as e:
             self.synchronize()
-            return None
+            raise e
 
     def var_declaration(self):
         name = self.consume(TokenType.IDENTIFIER, "Expect variable name")
@@ -101,6 +102,37 @@ class Parser:
             else_branch = self.statement()
 
         return If(condition, then_branch, else_branch)
+
+    def while_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition of 'while'.")
+        loop_body = self.statement()
+        # FIXME
+        assert loop_body is not None
+        return While(condition, loop_body)
+
+    def for_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+        if not self.check(TokenType.SEMICOLON):
+            initialization = self.declaration()
+        else:
+            initialization = None
+        if not self.check(TokenType.SEMICOLON):
+            condition = self.expression()
+            self.consume(TokenType.SEMICOLON, "Expect ';' after condition in for.")
+        else:
+            condition = None
+        if not self.check(TokenType.SEMICOLON):
+            update = self.expression()
+
+        else:
+            update = None
+        self.consume(TokenType.RIGHT_PAREN, "Expect ) after for-loop update")
+        loop_body = self.statement()
+        # FIXME
+        assert loop_body is not None
+        return For(initialization, condition, update, loop_body)
 
     def block(self):
         statements = []
@@ -179,15 +211,11 @@ class Parser:
             self.consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.")
             return Grouping(expr)
 
-        raise self.error(self.peek(), "Expect expression.")
+        raise ParserException(self.peek(), "Expect expression.")
 
     def consume(self, ttype: TokenType, msg: str):
         if self.check(ttype): return self.advance()
-        raise self.error(self.peek(), msg)
-
-    def error(self, token: Token, msg: str):
-        breakpoint()
-        return ParserException(token, msg)
+        raise ParserException(self.peek(), msg)
 
     def synchronize(self):
         self.advance() 
