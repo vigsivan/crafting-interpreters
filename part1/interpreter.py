@@ -2,7 +2,7 @@ from typing import Any, List
 from Stmt import Block, Break, For, If, Print, Expression, Stmt, Var, While
 from Expr import Assign, Binary, Expr, Logical, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
-from runtime_error import RuntimeError
+from runtime_error import RuntimeError, BreakException
 from environment import Environment
 
 class Interpreter:
@@ -28,11 +28,14 @@ class Interpreter:
     def visit_for(self, stmt: For):
         previous = self.environment
         try:
-            self.environment = Environment(enclosing=previous)
+            self.environment = Environment(enclosing=previous, inside_loop=True)
             if stmt.initialization is not None:
                 stmt.initialization.accept(self)
             while stmt.condition is None or (stmt.condition and self.is_truthy(self.evaluate(stmt.condition))):
-                self.execute(stmt.body)
+                try:
+                    self.execute(stmt.body)
+                except BreakException:
+                    break
                 if stmt.update is not None:
                     self.evaluate(stmt.update)
         finally:
@@ -43,7 +46,10 @@ class Interpreter:
         try:
             while stmt.condition is None or self.is_truthy(self.evaluate(stmt.condition)):
                 self.environment = Environment(enclosing=enclosing, inside_loop=True)
-                self.execute(stmt.loop_body)
+                try:
+                    self.execute(stmt.loop_body)
+                except BreakException:
+                    break
         finally:
             self.environment = enclosing
 
@@ -150,9 +156,12 @@ class Interpreter:
         return a == b
 
     def visit_break(self, b: Break):
-        if not self.environment.inside_loop:
-            # FIXME
-            raise Exception()
+        env = self.environment
+        while env is not None:
+            if env.inside_loop:
+                raise BreakException()
+            env = env.enclosing
+        raise RuntimeError(b.token, "Break not inside loop.")
 
     def is_truthy(self, object: Any) -> bool:
         if object is None: return False
@@ -171,8 +180,9 @@ class Interpreter:
         try:
             self.environment = environment
             for statement in statements:
-                if self.environment.inside_loop and isinstance(statement, Break):
-                    break
-                self.execute(statement)
+                try:
+                    self.execute(statement)
+                except BreakException:
+                    raise BreakException
         finally:
             self.environment = previous

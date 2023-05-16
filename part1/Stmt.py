@@ -61,5 +61,8 @@ class For(Stmt):
 		return visitor.visit_for(self)
 
 class Break(Stmt):
+	def __init__(self, token: Token):
+		self.token = token
+
 	def accept(self, visitor):
 		return visitor.visit_break(self)

@@ -148,10 +148,13 @@ def test_conditionals_shortcircuiting():
 def test_while_loop():
     program = \
     """
-    var i = 5;
-    while (i > 0) {
+    var i = 100;
+    while (true) {
         print "Hi";
         i = i - 1;
+        if (i == 0) {
+            break;
+        }
     }
     """
     Lox().run(program)
@@ -162,6 +165,9 @@ def test_for_loop():
     for ( var i=0; i< 5; i = i + 1 )
     {
         print i;
+        if (i > 2){
+            break;
+        }
     }
     """
     Lox().run(program)
@@ -173,5 +179,5 @@ if __name__ == "__main__":
     # test_conditionals_shortcircuiting()
     # test_execute_program_with_scopes()
     # test_execute_simple_program_with_vars()
-    # test_while_loop()
-    test_for_loop()
+    test_while_loop()
+    # test_for_loop()

@@ -140,8 +140,9 @@ class Parser:
         return For(initialization, condition, update, loop_body)
 
     def break_statement(self):
+        break_token = self.previous()
         self.consume(TokenType.SEMICOLON, "Expect ';' after break")
-        return Break()
+        return Break(break_token)
 
     def block(self):
         statements = []
