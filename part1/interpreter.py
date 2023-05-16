@@ -1,5 +1,5 @@
 from typing import Any, List
-from Stmt import Block, For, If, Print, Expression, Stmt, Var, While
+from Stmt import Block, Break, For, If, Print, Expression, Stmt, Var, While
 from Expr import Assign, Binary, Expr, Logical, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
 from runtime_error import RuntimeError
@@ -42,7 +42,7 @@ class Interpreter:
         enclosing = self.environment
         try:
             while stmt.condition is None or self.is_truthy(self.evaluate(stmt.condition)):
-                self.environment = Environment(enclosing=enclosing)
+                self.environment = Environment(enclosing=enclosing, inside_loop=True)
                 self.execute(stmt.loop_body)
         finally:
             self.environment = enclosing
@@ -149,6 +149,11 @@ class Interpreter:
             return False
         return a == b
 
+    def visit_break(self, b: Break):
+        if not self.environment.inside_loop:
+            # FIXME
+            raise Exception()
+
     def is_truthy(self, object: Any) -> bool:
         if object is None: return False
         if isinstance(object, bool): return bool(object)
@@ -166,6 +171,8 @@ class Interpreter:
         try:
             self.environment = environment
             for statement in statements:
+                if self.environment.inside_loop and isinstance(statement, Break):
+                    break
                 self.execute(statement)
         finally:
             self.environment = previous

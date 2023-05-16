@@ -1,7 +1,7 @@
 from abc import ABC
 from Expr import Expr
 from util import Token
-from typing import List, Optional
+from typing import List
 
 class Stmt(ABC):
 	def accept(self, visitor):
@@ -21,7 +21,7 @@ class Print(Stmt):
 		return visitor.visit_print(self)
 
 class Var(Stmt):
-	def __init__(self,  name: Token, initializer: Optional[Expr]): 
+	def __init__(self,  name: Token, initializer: Expr | None): 
 		self. name: Token=  name
 		self. initializer =  initializer
 	def accept(self, visitor):
@@ -34,7 +34,7 @@ class Block(Stmt):
 		return visitor.visit_block(self)
 
 class If(Stmt):
-	def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Optional[Stmt]):
+	def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Stmt | None):
 		self.condition = condition
 		self.then_branch = then_branch
 		self.else_branch = else_branch
@@ -43,7 +43,7 @@ class If(Stmt):
 		return visitor.visit_if(self)
 
 class While(Stmt):
-	def __init__(self, condition: Optional[Expr], loop_body: Stmt):
+	def __init__(self, condition: Expr | None, loop_body: Stmt):
 		self.condition = condition
 		self.loop_body = loop_body
 
@@ -51,7 +51,7 @@ class While(Stmt):
 		return visitor.visit_while(self)
 
 class For(Stmt):
-	def __init__(self, initialization: Optional[Var], condition: Optional[Expr], update: Optional[Expr], loop_body: Stmt):
+	def __init__(self, initialization: Stmt | None, condition: Expr | None, update: Expr | None, loop_body: Stmt):
 		self.initialization = initialization
 		self.condition = condition
 		self.update = update
@@ -60,3 +60,6 @@ class For(Stmt):
 	def accept(self, visitor):
 		return visitor.visit_for(self)
 
+class Break(Stmt):
+	def accept(self, visitor):
+		return visitor.visit_break(self)
