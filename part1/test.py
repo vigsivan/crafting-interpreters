@@ -172,12 +172,50 @@ def test_for_loop():
     """
     Lox().run(program)
 
+def test_nested_for_loop():
+    program = \
+    """
+    for ( var i=0; i< 15; i = i + 1 )
+    {
+        for ( var j = 0; j < i; j = j + 1)
+        {
+            if (i * j > i + j){
+                print "Breaking inner";
+                break;
+            }
+            print i;
+            print j;
+        }
+    }
+    """
+    Lox().run(program)
 
+def test_fibonacci():
+    program = \
+    """
+    var n = 1000;
+    var prev = 1;
+    var curr = 1;
+    if (n == 0){
+        curr = 0;
+    }
+    else if (n > 3) {
+        for(var i = 3; i <= n; i = i + 1) {
+            var tmp = curr;
+            curr = prev + curr;
+            prev = tmp;
+        }
+    }
+    print "Fibonacci " + n + " = " + curr;
+    """
+    Lox().run(program)
 
 if __name__ == "__main__":
     # test_execute_simple_program_with_vars()
     # test_conditionals_shortcircuiting()
     # test_execute_program_with_scopes()
     # test_execute_simple_program_with_vars()
-    test_while_loop()
+    # test_while_loop()
     # test_for_loop()
+    test_nested_for_loop()
+    # test_fibonacci()

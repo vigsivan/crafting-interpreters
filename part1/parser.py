@@ -111,7 +111,7 @@ class Parser:
         condition = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition of 'while'.")
         loop_body = self.statement()
-        # FIXME
+        # FIXME:
         assert loop_body is not None
         return While(condition, loop_body)
 
@@ -135,7 +135,7 @@ class Parser:
             update = None
         self.consume(TokenType.RIGHT_PAREN, "Expect ) after for-loop update")
         loop_body = self.statement()
-        # FIXME
+        # FIXME:
         assert loop_body is not None
         return For(initialization, condition, update, loop_body)
 

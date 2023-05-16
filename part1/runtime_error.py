@@ -7,4 +7,4 @@ class RuntimeError(Exception):
 
 class BreakException(Exception):
     def __init__(self):
-        ...
+        pass

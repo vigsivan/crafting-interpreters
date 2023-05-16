@@ -124,6 +124,8 @@ class Interpreter:
                     return float(left) + float(right)
                 elif isinstance(left, str) and isinstance(right, str):
                     return str(left) + str(right)
+                elif isinstance(left, str) or isinstance(right, str):
+                    return self.stringify(left) + self.stringify(right)
                 raise RuntimeError(expr.operator,
                                    "Operands must be two numbers or two strings")
             case TokenType.GREATER:
@@ -170,6 +172,8 @@ class Interpreter:
 
     def stringify(self, object: Any):
         if object is None: return "nil"
+        if isinstance(object, float) and object.is_integer():
+            object = int(object)
         return str(object)
 
     def evaluate(self, expr: Expr):
@@ -180,9 +184,6 @@ class Interpreter:
         try:
             self.environment = environment
             for statement in statements:
-                try:
-                    self.execute(statement)
-                except BreakException:
-                    raise BreakException
+                self.execute(statement)
         finally:
             self.environment = previous
