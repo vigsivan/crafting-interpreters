@@ -1,13 +1,64 @@
+from datetime import datetime
 from typing import Any, List
-from Stmt import Block, Break, For, If, Print, Expression, Stmt, Var, While
-from Expr import Assign, Binary, Expr, Logical, Grouping, Literal, Unary, Variable
+from Stmt import Block, Break, For, FunctionStatement, If, Print, Expression, Stmt, Var, While, Return
+from Expr import Assign, Binary, Call, Expr, Logical, Grouping, Literal, Unary, Variable
 from util import Token, TokenType
-from runtime_error import RuntimeError, BreakException
+from runtime_error import RuntimeError, BreakException, ReturnException
 from environment import Environment
+
+
+from abc import abstractmethod
+from typing import Protocol, runtime_checkable
+
+@runtime_checkable
+class LoxCallable(Protocol):
+    @abstractmethod
+    def arity(self) -> int:
+        ...
+    
+    @abstractmethod
+    def call(self, interpreter, arguments: List[Any]):
+        ...
+
+class Clock(LoxCallable):
+    def arity(self):
+        return 0
+    
+    def call(self, interpreter, arguments):
+        return datetime.now().strftime("%H:%M:%S")
+
+    def __repr__(self):
+        return "<native fn>"
+
+class Func(LoxCallable):
+    def __init__(self, stmt: FunctionStatement):
+        self.stmt = stmt
+    def arity(self):
+        return len(self.stmt.parameters)
+    def call(self, interpreter, arguments):
+        env = interpreter.environment
+        try:
+            interpreter.environment = Environment(enclosing=env, inside_function=True)
+            for param, arg in zip(self.stmt.parameters, arguments):
+                interpreter.environment.define(param.lexeme, interpreter.evaluate(arg))
+
+            interpreter.evaluate(self.stmt.body)
+        except ReturnException as re:
+            return re.value
+        finally:
+            interpreter.environment = env
+
+    def __repr__(self):
+        if self.stmt.name:
+            return f"<lox callable {self.stmt.name.lexeme}>"
+        else: return f"<anonymous lox callable>"
 
 class Interpreter:
     def __init__(self):
-        self.environment = Environment()
+        self.globals = Environment()
+        self.environment = self.globals
+
+        self.globals.define("clock", Clock())
 
     def interpret(self, statements: List[Stmt]):
         try:
@@ -68,6 +119,12 @@ class Interpreter:
     def visit_block(self, stmt: Block):
         self.execute_block(stmt.statements, Environment(self.environment))
 
+    def visit_function_statement(self, stmt: FunctionStatement):
+        if stmt.name is not None:
+            self.environment.define(stmt.name.lexeme, Func(stmt))
+        else:
+            return Func(stmt)
+
     def visit_print(self, stmt: Print):
         value = stmt.expression.accept(self)
         print(self.stringify(value))
@@ -86,10 +143,19 @@ class Interpreter:
                 self.check_number_operand(expr.operator, right)
                 return -float(right)
             case TokenType.BANG:
-                return -float(right)
+                return not self.is_truthy(right)
 
         # should be unreachable
         return None
+
+    def visit_call(self, expr: Call):
+        callee = self.evaluate(expr.callee)
+        arguments = [arg for arg in expr.arguments]
+        if not isinstance(callee, LoxCallable):
+            raise RuntimeError(expr.paren, "Can only call functions.")
+        if (nargs := len(arguments)) != (arity :=callee.arity()):
+            raise RuntimeError(expr.paren, f"Expected {arity} args, instead got {nargs}")
+        return callee.call(self, arguments=arguments)
 
     def visit_logical(self, expr: Logical):
         left = self.evaluate(expr.left)
@@ -156,6 +222,15 @@ class Interpreter:
         if a is None:
             return False
         return a == b
+
+    def visit_return(self, stmt: Return):
+        env = self.environment
+        while env is not None:
+            if env.inside_function:
+                raise ReturnException(self.evaluate(stmt.return_expr))
+            env = env.enclosing
+        raise RuntimeError(stmt.token, "Return not inside function.")
+
 
     def visit_break(self, b: Break):
         env = self.environment

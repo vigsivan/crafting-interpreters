@@ -56,4 +56,12 @@ class Logical(Expr):
         self. right: Expr=  right
     def accept(self, visitor):
         return visitor.visit_logical(self)
-
+    
+class Call(Expr):
+    def __init__(self, callee: Expr, paren: Token, arguments: list[Expr]):
+        self.callee = callee
+        self.paren = paren
+        self.arguments = arguments
+    
+    def accept(self, visitor):
+        return visitor.visit_call(self)

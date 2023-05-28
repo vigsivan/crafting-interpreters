@@ -193,7 +193,7 @@ def test_nested_for_loop():
 def test_fibonacci():
     program = \
     """
-    var n = 1000;
+    var n = 10;
     var prev = 1;
     var curr = 1;
     if (n == 0){
@@ -210,6 +210,83 @@ def test_fibonacci():
     """
     Lox().run(program)
 
+def test_builtin_clock():
+    program = \
+    """
+    print clock();
+    """
+    Lox().run(program)
+
+def test_fibonacci_function():
+    program = \
+    """
+    fun fib(n) {
+        var prev = 1;
+        var curr = 1;
+        if (n == 0){
+            curr = 0;
+        }
+        else if (n > 3) {
+            for(var i = 3; i <= n; i = i + 1) {
+                var tmp = curr;
+                curr = prev + curr;
+                prev = tmp;
+            }
+        }
+        return curr;
+    }
+    print "Fibonacci " + 10 + " = " + fib(10);
+    print "Fibonacci " + 13 + " = " + fib(13);
+    print "Fibonacci " + 15 + " = " + fib(15);
+
+    """
+    Lox().run(program)
+
+def test_recursive_fibonacci_function():
+    program = \
+    """
+    fun fib(n) {
+        if (n < 0) {
+            return nil;
+        }
+        if (n == 0) {
+            return 0;
+        }
+        if (n < 3) {
+            return 1;
+        }
+        else return fib(n-1) + fib(n-2);
+    }
+    print "Fibonacci " + 15 + " = " + fib(15);
+
+    """
+    Lox().run(program)
+
+def test_function_expression():
+    program = \
+    """
+    var print_mongoose = fun () {
+        print "Mongoose"
+    }
+    print_mongoose()
+
+    """
+    Lox().run(program)
+
+
+
+def test_return():
+    program = \
+    """
+    fun mongoose() {
+        if (true) {
+            return "foo";
+        }
+    }
+    """
+    Lox().run(program)
+
+
 if __name__ == "__main__":
     # test_execute_simple_program_with_vars()
     # test_conditionals_shortcircuiting()
@@ -217,5 +294,9 @@ if __name__ == "__main__":
     # test_execute_simple_program_with_vars()
     # test_while_loop()
     # test_for_loop()
-    test_nested_for_loop()
+    # test_nested_for_loop()
     # test_fibonacci()
+    # test_fibonacci_function()
+    # test_return()
+    test_recursive_fibonacci_function()
+    # test_builtin_clock()

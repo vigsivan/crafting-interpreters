@@ -1,12 +1,13 @@
 from typing import List, Final
-from Expr import Assign, Binary, Grouping, Literal, Unary, Variable, Logical
-from Stmt import Block, Break, If, Print, Expression, Var, For, While, Stmt
+from Expr import Assign, Binary, Call, Grouping, Literal, Unary, Variable, Logical
+from Stmt import Block, Break, If, FunctionStatement, Print, Expression, Var, For, While, Stmt, Return
 from util import Token, TokenType
+
+MAX_ARGUMENTS = 255
 
 class ParserException(Exception):
     """Parser Exception"""
     def __init__(self, token: Token, message: str):
-        breakpoint()
         self.token: Final[Token] = token
         self.message = message
 
@@ -77,6 +78,8 @@ class Parser:
         return Var(name, initializer)
 
     def statement(self):
+        if self.match(TokenType.FUN):
+            return self.function_statement()
         if self.match(TokenType.IF):
             return self.if_statement()
         if self.match(TokenType.LEFT_BRACE):
@@ -91,8 +94,28 @@ class Parser:
             return self.for_statement()
         if self.match(TokenType.BREAK):
             return self.break_statement()
+        if self.match(TokenType.RETURN):
+            return self.return_statement()
 
         return self.expression_statement()
+
+    def function_statement(self):
+        if not self.check(TokenType.LEFT_PAREN):
+            name = self.consume(TokenType.IDENTIFIER, "Expect function name")
+        else:
+            name = None
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after fun name.")
+        parameters = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                parameters.append(self.consume(TokenType.IDENTIFIER, "Expect parameter name"))
+                if not self.match(TokenType.COMMA):
+                    break
+                if len(parameters) >= MAX_ARGUMENTS:
+                    raise ParserException(self.peek(), f"Can't have more than {MAX_ARGUMENTS} parameters")
+        self.consume(TokenType.RIGHT_PAREN , "Expect ')' after function parameters.")
+        implementation = self.statement()
+        return FunctionStatement(name, parameters, implementation)
 
     def if_statement(self):
         self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
@@ -135,9 +158,13 @@ class Parser:
             update = None
         self.consume(TokenType.RIGHT_PAREN, "Expect ) after for-loop update")
         loop_body = self.statement()
-        # FIXME:
-        assert loop_body is not None
         return For(initialization, condition, update, loop_body)
+
+    def return_statement(self):
+        token = self.previous()
+        return_value = self.expression()
+        self.consume(TokenType.SEMICOLON, "Expect ';' after return value")
+        return Return(token, return_value)
 
     def break_statement(self):
         break_token = self.previous()
@@ -147,7 +174,10 @@ class Parser:
     def block(self):
         statements = []
         while not self.check(TokenType.RIGHT_BRACE) and not self.is_at_end():
-            statements.append(self.declaration())
+            try:
+                statements.append(self.declaration())
+            except ParserException as pe:
+                raise pe
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
         return statements
 
@@ -203,8 +233,34 @@ class Parser:
             operator = self.previous()
             right = self.unary()
             return Unary(operator, right)
-        return self.primary()
+        return self.call()
+    
+    def call(self):
+        # think of this primary expression as being the left
+        # operand to the '(' operator
+        expr = self.primary()
+        while True:
+            if self.match(TokenType.LEFT_PAREN):
+                arguments = self.parse_args()
+                paren = self.consume(TokenType.RIGHT_PAREN
+                                     , "Expect ')' after function arguments.")
+                expr = Call(expr, paren, arguments)
+            else:
+                break
 
+        return expr
+
+    def parse_args(self):
+        arguments = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            while True:
+                arguments.append(self.expression())
+                if not self.match(TokenType.COMMA):
+                    break
+                if len(arguments) >= MAX_ARGUMENTS:
+                    raise ParserException(self.peek(), f"Can't have more than {MAX_ARGUMENTS} arguments")
+        return arguments
+    
     def primary(self):
         if self.match(TokenType.FALSE):
             return Literal(False)

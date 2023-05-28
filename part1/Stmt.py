@@ -66,3 +66,19 @@ class Break(Stmt):
 
 	def accept(self, visitor):
 		return visitor.visit_break(self)
+
+class Return(Stmt):
+	def __init__(self, token: Token, return_expr: Expr):
+		self.token = token
+		self.return_expr = return_expr
+	def accept(self, visitor):
+		return visitor.visit_return(self)
+
+class FunctionStatement(Stmt):
+	def __init__(self, name: Token | None, parameters: list[Token], body: Stmt):
+		self.name = name
+		self.parameters = parameters
+		self.body = body
+
+	def accept(self, visitor):
+		return visitor.visit_function_statement(self)

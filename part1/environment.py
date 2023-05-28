@@ -4,10 +4,11 @@ from util import Token
 
 
 class Environment:
-    def __init__(self, enclosing: Self | None = None, inside_loop: bool=False):
+    def __init__(self, enclosing: Self | None = None, inside_loop: bool=False, inside_function: bool=False):
         self.values: Dict[str, Any] = {}
         self.enclosing: Final[Optional[Self]] = enclosing
         self.inside_loop = inside_loop
+        self.inside_function = inside_function
 
     def define(self, name: str, value: Any):
         self.values[name] = value
