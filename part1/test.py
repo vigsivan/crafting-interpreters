@@ -265,14 +265,35 @@ def test_recursive_fibonacci_function():
 def test_function_expression():
     program = \
     """
-    var print_mongoose = fun () {
-        print "Mongoose"
-    }
-    print_mongoose()
-
+    var mongoose = fun () {
+        print "Hello world";
+    };
+    mongoose();
     """
     Lox().run(program)
 
+def test_function_closure():
+    program = \
+    """
+    fun outer_function(){
+        var i = 5;
+        fun inner_function(n) {
+            if (i < 0) {
+                return i + n;
+            }
+            else {
+                return i - n;
+            }
+        }
+        return inner_function;
+    }
+    var foo = outer_function();
+    print foo(2);
+    print foo(2);
+    print foo(2);
+    print foo(2);
+    """
+    Lox().run(program)
 
 
 def test_return():
@@ -298,5 +319,7 @@ if __name__ == "__main__":
     # test_fibonacci()
     # test_fibonacci_function()
     # test_return()
-    test_recursive_fibonacci_function()
+    # test_recursive_fibonacci_function()
     # test_builtin_clock()
+    # test_function_expression()
+    test_function_closure()

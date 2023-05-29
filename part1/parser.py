@@ -27,8 +27,15 @@ class Parser:
     def expression(self):
         return self.assignment()
 
+    def function(self):
+        if self.match(TokenType.FUN):
+            expr = self.parse_function()
+        else:
+            expr = self.logical_or()
+        return expr
+
     def assignment(self):
-        expr = self.logical_or()
+        expr = self.function()
 
         if self.match(TokenType.EQUAL):
             equals = self.previous()
@@ -78,8 +85,8 @@ class Parser:
         return Var(name, initializer)
 
     def statement(self):
-        if self.match(TokenType.FUN):
-            return self.function_statement()
+        # if self.match(TokenType.FUN):
+        #     return self.function_statement()
         if self.match(TokenType.IF):
             return self.if_statement()
         if self.match(TokenType.LEFT_BRACE):
@@ -99,7 +106,7 @@ class Parser:
 
         return self.expression_statement()
 
-    def function_statement(self):
+    def parse_function(self):
         if not self.check(TokenType.LEFT_PAREN):
             name = self.consume(TokenType.IDENTIFIER, "Expect function name")
         else:
@@ -188,7 +195,9 @@ class Parser:
 
     def expression_statement(self) -> Stmt:
         expr = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
+        if isinstance(expr, FunctionStatement):
+            return Expression(expr)
+        self.consume(TokenType.SEMICOLON, "Expect ';' after value in expression statement.")
         return Expression(expr)
 
     def equality(self):

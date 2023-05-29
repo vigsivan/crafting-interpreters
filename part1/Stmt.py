@@ -74,7 +74,7 @@ class Return(Stmt):
 	def accept(self, visitor):
 		return visitor.visit_return(self)
 
-class FunctionStatement(Stmt):
+class FunctionStatement(Expr):
 	def __init__(self, name: Token | None, parameters: list[Token], body: Stmt):
 		self.name = name
 		self.parameters = parameters
